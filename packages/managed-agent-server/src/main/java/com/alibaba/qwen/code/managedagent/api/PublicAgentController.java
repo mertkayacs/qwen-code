@@ -12,7 +12,9 @@ import com.alibaba.qwen.code.managedagent.model.ApiModels.PublicSession;
 import com.alibaba.qwen.code.managedagent.model.ApiModels.PublicTask;
 import com.alibaba.qwen.code.managedagent.model.ApiModels.PublicTaskEvent;
 import com.alibaba.qwen.code.managedagent.model.ApiModels.PublicTurn;
+import com.alibaba.qwen.code.managedagent.model.ApiModels.RecoveryRecheckRequest;
 import com.alibaba.qwen.code.managedagent.model.ApiModels.SessionEventRequest;
+import com.alibaba.qwen.code.managedagent.model.ApiModels.SessionRecovery;
 import com.alibaba.qwen.code.managedagent.model.ApiModels.UpdateSessionRequest;
 import com.alibaba.qwen.code.managedagent.model.StoreModels.OperationKind;
 import com.alibaba.qwen.code.managedagent.model.TenantContext;
@@ -22,6 +24,7 @@ import com.alibaba.qwen.code.managedagent.session.ManagedEventStreamService;
 import com.alibaba.qwen.code.managedagent.session.ManagedTaskCancelService;
 import com.alibaba.qwen.code.managedagent.session.ManagedTaskService;
 import com.alibaba.qwen.code.managedagent.session.SessionLifecycleService;
+import com.alibaba.qwen.code.managedagent.session.SessionRecoveryService;
 import com.alibaba.qwen.code.managedagent.workspace.WorkspaceSelection;
 import jakarta.validation.Valid;
 import org.apache.commons.lang3.StringUtils;
@@ -48,16 +51,18 @@ public class PublicAgentController {
     private final SessionLifecycleService lifecycle;
     private final ManagedTaskService tasks;
     private final ManagedTaskCancelService taskCancels;
+    private final SessionRecoveryService recovery;
 
     public PublicAgentController(ManagedAgentService service,
             ManagedEventStreamService streams,
             SessionLifecycleService lifecycle, ManagedTaskService tasks,
-            ManagedTaskCancelService taskCancels) {
+            ManagedTaskCancelService taskCancels, SessionRecoveryService recovery) {
         this.service = service;
         this.streams = streams;
         this.lifecycle = lifecycle;
         this.tasks = tasks;
         this.taskCancels = taskCancels;
+        this.recovery = recovery;
     }
 
     @PostMapping
@@ -112,6 +117,21 @@ public class PublicAgentController {
             @PathVariable String sessionId) {
         return service.getPublicSession(tenant.tenantId(),
                 tenant.actorId(), sessionId);
+    }
+
+    @GetMapping("/{sessionId}/recovery")
+    public ResponseEntity<SessionRecovery> recovery(TenantContext tenant,
+            @PathVariable String sessionId) {
+        return ResponseEntity.ok().cacheControl(org.springframework.http.CacheControl.noStore())
+                .body(recovery.query(tenant.tenantId(), tenant.actorId(), sessionId));
+    }
+
+    @PostMapping("/{sessionId}/recovery/recheck")
+    public ResponseEntity<SessionRecovery> recheckRecovery(TenantContext tenant,
+            @PathVariable String sessionId,
+            @Valid @RequestBody RecoveryRecheckRequest request) {
+        return ResponseEntity.accepted().body(recovery.recheck(tenant.tenantId(),
+                tenant.actorId(), sessionId, request.turnId()));
     }
 
     @PatchMapping("/{sessionId}")

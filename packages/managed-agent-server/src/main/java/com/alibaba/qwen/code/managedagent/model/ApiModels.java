@@ -174,7 +174,46 @@ public final class ApiModels {
             @JsonProperty("snapshot_through_sequence")
                     long snapshotThroughSequence,
             SessionCapabilities capabilities,
-            @JsonProperty("workspace") PublicWorkspace workspace) {
+            @JsonProperty("workspace") PublicWorkspace workspace,
+            SessionRecovery recovery) {
+        public PublicSession(String id, String object, String agentId,
+                String agentRevision, String agentDefinitionDigest,
+                String status, long createdAt, long updatedAt,
+                Map<String, Object> metadata, PublicTurn activeTurn,
+                long lastEventId, long replayFloorSequence,
+                long snapshotThroughSequence, SessionCapabilities capabilities,
+                PublicWorkspace workspace) {
+            this(id, object, agentId, agentRevision, agentDefinitionDigest,
+                    status, createdAt, updatedAt, metadata, activeTurn,
+                    lastEventId, replayFloorSequence, snapshotThroughSequence,
+                    capabilities, workspace, null);
+        }
+
+        public PublicSession withRecovery(SessionRecovery value) {
+            return new PublicSession(id, object, agentId, agentRevision,
+                    agentDefinitionDigest, status, createdAt, updatedAt,
+                    metadata, activeTurn, lastEventId, replayFloorSequence,
+                    snapshotThroughSequence, capabilities, workspace, value);
+        }
+    }
+
+    public record SessionRecoveryActions(boolean recheck, boolean cancel,
+            boolean continueInNewSession) {
+    }
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public record SessionRecovery(String state, String reasonCode,
+            String turnId, boolean nextTurnAllowed,
+            SessionRecoveryActions actions, Long nextRecheckAt) {
+    }
+
+    public record RecoveryRecheckRequest(@NotBlank @Size(max = 128)
+            String turnId) {
+    }
+
+    public record WebShellRecoveryRecheckRequest(
+            @NotBlank @Size(max = 128) String sessionId,
+            @NotBlank @Size(max = 128) String turnId) {
     }
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -501,7 +540,28 @@ public final class ApiModels {
             WebShellWorkspace workspace,
             WebShellSessionCapabilities capabilities, String approvalMode,
             WebShellModelContext modelContext, WebShellModelSelection modelSelection,
-            Long approvalRevision, String initialApprovalMode, boolean planMode, boolean planModeSupported) {
+            Long approvalRevision, String initialApprovalMode, boolean planMode, boolean planModeSupported,
+            SessionRecovery recovery) {
+        public WebShellSession(String sessionId, String title, String agentId,
+                String status, long createdAt, long updatedAt,
+                WebShellTurn activeTurn, Object environment, long lastSequence,
+                WebShellWorkspace workspace, WebShellSessionCapabilities capabilities,
+                String approvalMode, WebShellModelContext modelContext,
+                WebShellModelSelection modelSelection, Long approvalRevision,
+                String initialApprovalMode, boolean planMode, boolean planModeSupported) {
+            this(sessionId, title, agentId, status, createdAt, updatedAt,
+                    activeTurn, environment, lastSequence, workspace, capabilities,
+                    approvalMode, modelContext, modelSelection, approvalRevision,
+                    initialApprovalMode, planMode, planModeSupported, null);
+        }
+
+        public WebShellSession withRecovery(SessionRecovery value) {
+            return new WebShellSession(sessionId, title, agentId, status,
+                    createdAt, updatedAt, activeTurn, environment, lastSequence,
+                    workspace, capabilities, approvalMode, modelContext,
+                    modelSelection, approvalRevision, initialApprovalMode,
+                    planMode, planModeSupported, value);
+        }
     }
 
     /** H6b: the definition fields a create or revise request carries. */

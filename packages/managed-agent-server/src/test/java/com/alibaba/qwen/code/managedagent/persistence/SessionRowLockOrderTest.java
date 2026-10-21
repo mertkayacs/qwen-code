@@ -397,7 +397,8 @@ class SessionRowLockOrderTest {
                 "recordRecoveryAdmission", "retractContinuationOutput",
                 "retractHarnessTurnOutput", "recordHarnessEvents",
                 "cancelUnadmittedTurn", "cancelBeforeAdmission", "failTurn",
-                "failRecoveryBlockedTurn",
+                "failRecoveryBlockedTurn", "markTurnFailureRecovery",
+                "requestRecoveryRecheck",
                 "appendPublicEventIfAbsent", "appendLiveSessionEventIfAbsent",
                 // Main's rename-delivery family (#13682): each takes the
                 // session-row FOR UPDATE before its delivery-row work.
@@ -464,7 +465,8 @@ class SessionRowLockOrderTest {
                         "insertSession", "insertSessionCommand", "insertTurn",
                         "insertTurnCommand", "insertWorkspaceSessionCommand",
                         "listTurns", "markSubmissionAttempted",
-                        "markTurnRecoveryBlocked",
+                        "markTurnRecoveryBlocked", "markTurnFailureRecovery",
+                        "requestRecoveryRecheck",
                         "materializeEvent", "materializeInput",
                         "materializeNextBatch", "recordAdmission",
                         "recordHarnessEvents", "recordRecoveryAdmission",
@@ -503,7 +505,8 @@ class SessionRowLockOrderTest {
     @Test
     void theOrderPinnedEntriesKeepTheirTransactionalBoundary() {
         for (String name : List.of("recordAdmission", "failTurn", "failRecoveryBlockedTurn",
-                "cancelUnadmittedTurn", "cancelBeforeAdmission")) {
+                "cancelUnadmittedTurn", "cancelBeforeAdmission", "markTurnFailureRecovery",
+                "requestRecoveryRecheck")) {
             List<Method> entries = Arrays.stream(ManagedAgentStore.class
                     .getDeclaredMethods())
                     .filter(method -> method.getName().equals(name))
