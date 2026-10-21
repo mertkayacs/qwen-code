@@ -3319,7 +3319,7 @@ describe('Hosted Harness no-tool session', () => {
         trigger: 'scheduled',
         firedAt: Date.parse('2026-03-08T07:00:05Z'),
       });
-      if (cancel) await automations.requestCancel(fired.run.automationRunId);
+      if (cancel) await automations.requestCancel(fired.run!.automationRunId);
       return fired.inputId;
     } finally {
       await managed.close().catch(() => undefined);
@@ -3410,7 +3410,7 @@ describe('Hosted Harness no-tool session', () => {
         daemonPromptId: fired.inputId,
         message: { role: 'user', parts: [{ text: 'queued' }] },
       } as never);
-      if (cancel) await automations.requestCancel(fired.run.automationRunId);
+      if (cancel) await automations.requestCancel(fired.run!.automationRunId);
       return fired.inputId;
     } finally {
       await managed.close().catch(() => undefined);
