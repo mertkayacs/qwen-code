@@ -713,6 +713,7 @@ function toSessionSummary(
   session: JavaAgentSession,
 ): ManagedAgentSessionSummary {
   const turnStatus = session.activeTurn?.status.toLowerCase();
+  const recoveryBlocked = turnStatus === 'recovery_blocked';
   const runtimeState = toRuntimeState(session.environment?.state);
   const phase = toPhase(turnStatus, runtimeState);
   const active =
@@ -773,12 +774,16 @@ function toSessionSummary(
         sessionActive &&
         !active &&
         !session.contextCompressionOperationId &&
+        !recoveryBlocked &&
         (!session.workspace ||
           (workspaceTurns && session.capabilities?.foregroundShell !== false)),
       // The creator may cancel a running bound Turn after the Workspace stops
       // admitting new work, so cancel is not tied to workspaceTurns; the
       // server refuses anyone else.
-      canCancel: sessionActive && active && turnStatus !== 'cancelling',
+      canCancel:
+        sessionActive &&
+        (active || recoveryBlocked) &&
+        turnStatus !== 'cancelling',
       ...(workspaceTurns ? { workspaceTurns: true } : {}),
       ...(session.capabilities?.cwdChange === true ? { cwdChange: true } : {}),
       ...(session.capabilities?.modelChange === true
